@@ -111,7 +111,7 @@ async def transcribe(file: UploadFile = File(...)):
     if not audio_bytes:
         raise HTTPException(status_code=400, detail="Empty audio file")
 
-    url = "https://api-inference.huggingface.co/models/openai/whisper-tiny"
+   url = "https://router.huggingface.co/hf-inference/models/openai/whisper-tiny"
 
     headers = {
         "Authorization": f"Bearer {hf_api_key}",
