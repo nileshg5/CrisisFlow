@@ -11,7 +11,14 @@ import urllib.request
 from fastapi import FastAPI, File, UploadFile, Request
 
 app = FastAPI(title="Local Whisper Server")
-model = whisper.load_model("base")
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        import whisper
+        model = whisper.load_model("tiny")  # critical
+    return model
 HF_OCR_ENDPOINTS = [
     "https://router.huggingface.co/hf-inference/models/microsoft/trocr-large-printed",
     "https://api-inference.huggingface.co/models/microsoft/trocr-large-printed",
@@ -125,7 +132,7 @@ async def transcribe(file: UploadFile = File(...)):
             tmp.write(await file.read())
             temp_path = tmp.name
 
-        result = model.transcribe(temp_path)
+        result = get_model().transcribe(temp_path)
         text = (result.get("text") or "").strip()
         return {"text": text}
     except Exception as exc:
@@ -168,5 +175,7 @@ async def gemini_proxy(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
+    import os
 
-    uvicorn.run("whisper_server:app", host="127.0.0.1", port=8000, reload=False)
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("whisper_server:app", host="0.0.0.0", port=port)
